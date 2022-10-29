@@ -1,20 +1,41 @@
+from msilib import Table
 from xml.etree.ElementTree import fromstring
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-
-from views import views
-from auth import auth
+from os import path
 
 db = SQLAlchemy()
 DB_NAME = "database.db"
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'HU3HU3HU3'
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
-db.init_app(app)
+def criar_app():
+    app = Flask(__name__)
+    app.config['SECRET_KEY'] = 'HU3HU3HU3'
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
+    db.init_app(app)
 
-app.register_blueprint(views, url_prefix="/")
-app.register_blueprint(auth, url_prefix="/")
+    from views import views
+    from auth import auth
+
+    app.register_blueprint(views, url_prefix="/")
+    app.register_blueprint(auth, url_prefix="/")
+
+    from models import User, Note
+
+    #create_database(app)
+
+    #cria database
+    with app.app_context():
+        db.create_all()
+
+    return app
+
+#def create_database(app):
+#    if not path.exists('Trabalho Flask' + DB_NAME):
+#        db.create_all(app=app)
+#        print('database criada')
+
+app = criar_app()
+
 
 if __name__ == '__main__':
     app.run(debug=True)
