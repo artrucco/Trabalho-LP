@@ -4,29 +4,61 @@ from flask_login import login_required, current_user
 from models import Note
 from __main__ import db
 import json
+import os
+import pandas as pd
+import matplotlib.pyplot as plt
 
 views = Blueprint(__name__,"views")
 
 @views.route("/", methods=['GET','POST'])
 @login_required
 def home():
-    #adicionar ou remover anotações
+    #adicionar nova anotação à pagina inicial do usuario
     if request.method == 'POST':
         note = request.form.get('note')
-        if len(note) < 1:
-            flash('Anotação invalida.', category = 'error')
-        else:
-            new_note = Note(data=note, user_id=current_user.id)
-            db.session.add(new_note)
-            db.session.commit()
-            flash('Anotação adicionada', category = 'success')
+        if note:
+            if len(note) < 1:
+                flash('Anotação invalida.', category = 'error')
+            else:
+                new_note = Note(data=note, user_id=current_user.id)
+                db.session.add(new_note)
+                db.session.commit()
+                flash('Anotação adicionada.', category = 'success')
 
     return render_template("index.html", user = current_user)
 
-@views.route("/profile")
-def profile():
-    return render_template("profile.html")
+#uploadar um arquivo excel csv que sera copiado e salvo na pasta statics
+@views.route("/upload", methods=['POST', 'GET'])
+@login_required
+def upload():
+    if request.method == 'POST':
+        file = request.files['csvfile']
+        #se o diretorio static nao existe, criar:
+        if os.path.isdir('static'):
+            filepath = os.path.join('static', file.filename)
+            file.save(filepath) #salva o arquivo escolhido no path static 
+        flash('O nome do arquivo upado é: {}'.format(file.filename), category='success')
+    
+    return render_template("upload.html", user = current_user)
 
+@views.route('/dash', methods = ['GET','POST'])
+#escolher uma coluna do csv upado e plotar grafico
+def dash():
+    if request.method == 'POST':
+        variable = request.form['variable']
+        data = pd.read_csv('static/exemplo.csv')
+        plt.bar(range(len(data[variable])), data[variable])
+        imagepath = os.path.join('static', 'image' + '.png')
+        plt.savefig(imagepath)
+        return render_template('image.html', image = imagepath)
+    return render_template('dash.html')
+
+#talvez eu remova isso aqui
+#@views.route("/profile")
+#def profile():
+#    return render_template("profile.html")
+
+#retorna ao template inicial
 @views.route("/go-to-home")
 @login_required
 def go_to_home():
@@ -36,6 +68,7 @@ def go_to_home():
 def to_sign_up():
     return render_template('sign_up.html')
 
+#deleta anotação
 @views.route('/delete-note', methods=['POST'])
 def delete_note():
     note = json.loads(request.data)
@@ -45,5 +78,6 @@ def delete_note():
         if note.user_id == current_user.id:
             db.session.delete(note)
             db.session.commit()
+            flash('Anotação removida: {}'.format(note.data), category='success')
 
     return jsonify({})

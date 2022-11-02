@@ -3,7 +3,7 @@ from unicodedata import category
 from xmlrpc.client import boolean
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from models import User, db
-#para nunca guardar a senha como texto, converter a hash
+#para nunca guardar a senha como texto, converter para hash
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, login_required, logout_user, current_user
 
@@ -45,24 +45,25 @@ def sign_up():
         senha1 = request.form.get('senha1')
         senha2 = request.form.get('senha2')
 
-        #checa se usuario ja existe
+        #percorre db pra checar se o usuario ja existe, registra o primeiro com o nome
         user = User.query.filter_by(email=email).first()
+        #se o usuario existe...
         if user:
             flash('Email ja cadastrado.', category = 'error')
             return redirect(url_for('views.to_sign_up'))
         #checar validade do usuario novo
         if len(email) < 4:
-            flash('Email deve ser maior', category='error')
-            return redirect(url_for('auth.sign_up'))
+            flash('Email inválido', category='error')
+            return redirect(url_for('views.to_sign_up'))
         elif len(primeiro_nome) < 2:
             flash('Nome deve conter mais que dois caracteres', category='error')
-            return redirect(url_for('auth.sign_up'))
+            return redirect(url_for('views.to_sign_up'))
         elif senha1 != senha2:
-            flash('senhas nao sao iguais', category='error')
-            return redirect(url_for('auth.sign_up'))
+            flash('Senhas nao sao iguais', category='error')
+            return redirect(url_for('views.to_sign_up'))
         elif len(senha1) < 7:
             flash('Senha deve conter ao menos 7 caracteres', category='error')
-            return redirect(url_for('auth.sign_up'))
+            return redirect(url_for('views.to_sign_up'))
         else:
             #adiciona usuario novo a databse
             new_user = User(email=email, primeiro_nome=primeiro_nome, senha=generate_password_hash(senha1, method='sha256'))

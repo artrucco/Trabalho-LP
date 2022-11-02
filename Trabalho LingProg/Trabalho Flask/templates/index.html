@@ -1,6 +1,6 @@
 {% extends "base.html" %}{% block title%}Home{% endblock %}
     {% block content %}
-    <div><h1>Home Page</h1>
+    <div><h2>Home Page</h1>
     <br />
     <h2> <p>Hello, {{ current_user.primeiro_nome }} </p> </h2>
 
@@ -25,9 +25,12 @@
         </button>
     </div>
     </form>
+    </div>
+
+
+    
     {% endblock %}
     
-    </div>
     <script> type="text/javascript" src="{{ url_for('static', filename='index.js') }}"
     </script>
 
