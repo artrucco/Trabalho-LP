@@ -1,8 +1,41 @@
 {% extends "base.html" %}
+
+
 {% block content %}
+    <div>
+        <h1 class="text-center">
+        
+        </h1>
+    </div>
+    <div class="row p-4">
+        <div class="card ml- auto" style="width: 90%;">
+            <div class="card-body">
+                <div id="chart1"></div>
+                <p>
+                    
+                </p>
+            </div>
+        </div>
+        <div class="card ml- auto" style="width: 90%;">
+            <div class="card-body">
+                <div id="chart2"></div>
+                <p>
+                    
+                </p>
+            </div>
+        </div>
+    </div>
 
-Plot
+    <!-- plotly cdn -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+    <script src="https://d14fo0winaifog.cloudfront.net/plotly-basic.js"></script>
+    <script type="text/javascript">
+        var graph1 = {{graph1JASON | safe}}
+        Plotly.plot('chart1', graph1, {})
 
-{{ data | safe }}
-
-{% endblock %}
+        var graph2 = {{graph2JASON | safe}}
+        Plotly.plot('chart2', graph2, {})
+    </script>
+{% endblock %}  
+            
