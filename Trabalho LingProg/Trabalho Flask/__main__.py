@@ -36,11 +36,6 @@ def criar_app():
 
     return app
 
-#def create_database(app):
-#    if not path.exists('Trabalho Flask' + DB_NAME):
-#        db.create_all(app=app)
-#        print('database criada')
-
 app = criar_app()
 
 
