@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 align="center">Arquivos</h1>
+
+
+<li class="list-group-tem">
+    
+<label for="arquivos">Escolha uma database:</label>
+    <form method="POST">  
+    <select method='POST' class='dropdown-header' name="database" id="database">
+    {% for i in arquivos %}
+        <option value={{i}}>{{ i }}</option>
+    {% endfor %}
+        <input type="submit" class="btn btn-primary" name="" value="Submit">
+            
+    </select> 
+    </form>  
+</li>
+
+{% endblock %}
