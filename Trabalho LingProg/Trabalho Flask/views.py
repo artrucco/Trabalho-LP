@@ -4,6 +4,7 @@ from flask_login import login_required, current_user
 from models import Note
 from __main__ import db
 import json
+
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -11,11 +12,13 @@ import plotly
 import plotly.express as px
 
 
+
 views = Blueprint(__name__,"views")
 
 @views.route("/", methods=['GET','POST'])
 @login_required
 def home():
+
     #adicionar nova anotação à pagina inicial do usuario
     if request.method == 'POST':
         note = request.form.get('note')
@@ -100,12 +103,6 @@ def arquivos(): #ler arquivo csv e escolher entre os arquivos upados para plotag
         
     return render_template('arquivos.html', user=current_user, arquivos = lista_arquivos)
 
-@views.route('arquivos/plot', methods=['POST','GET'])
-@login_required
-def plot(): #plotagem e visualização dos dados
-    return render_template('plots.html', user=current_user)
-
-
 @views.route('/dash', methods = ['GET','POST'])
 def dash(): #escolher uma coluna do csv upado e plotar grafico
     if request.method == 'POST':
@@ -126,7 +123,7 @@ def go_to_home():
 @views.route("/sign-up")
 def to_sign_up():
     return render_template('sign_up.html')
-
+    
 #deleta anotação
 @views.route('/delete-note', methods=['POST'])
 def delete_note():
@@ -138,5 +135,4 @@ def delete_note():
             db.session.delete(note)
             db.session.commit()
             flash('Anotação removida: {}'.format(note.data), category='success')
-
     return jsonify({})
