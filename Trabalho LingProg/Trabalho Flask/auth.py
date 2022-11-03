@@ -41,7 +41,7 @@ def logout():
 def sign_up():
     if request.method == 'POST':
         email = request.form.get('email')
-        primeiro_nome = request.form.get('primeiro_nome')
+        primeiro_nome = request.form.get('primeiroNome')
         senha1 = request.form.get('senha1')
         senha2 = request.form.get('senha2')
 
@@ -69,9 +69,9 @@ def sign_up():
             new_user = User(email=email, primeiro_nome=primeiro_nome, senha=generate_password_hash(senha1, method='sha256'))
             db.session.add(new_user)
             db.session.commit()
-            login_user(user, remember = True) 
+            #login_user(user, remember = True) 
             flash('Conta criada com sucesso!', category='success')
             #redireciona a funcao home em views - pagina inicial
-            return redirect(url_for('views.home'))
+            return render_template('login.html', user = new_user)
 
     return render_template("sign_up.html", user = current_user)
