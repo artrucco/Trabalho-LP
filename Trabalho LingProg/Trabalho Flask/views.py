@@ -8,6 +8,9 @@ import json
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+import plotly
+import plotly.express as px
+
 
 
 views = Blueprint(__name__,"views")
@@ -50,41 +53,62 @@ def upload():
 
 @views.route('/arquivos', methods=['POST','GET'])
 @login_required
-def arquivos(): #ler arquivo csv e realizar os plots
+def arquivos(): #ler arquivo csv e escolher entre os arquivos upados para plotagem
     dir_path='static/{}'.format(current_user.primeiro_nome)
     lista_arquivos = os.listdir(dir_path) #pega a lista de arquivos contidos na pasta pessoal do usuario
     if request.method == 'POST':
         file = request.form.get('database') #pega a database selecionada no dropdown
         data = pd.read_csv(f"{dir_path}/{file}") #ler a database selecionada no dropdown
 
-        return render_template('plots.html', user = current_user, data=data.to_html())
+        country = 'Brazil'
+        year = '2019'
+
+        #grafico 1 - top 10 causas de mortes 
+        data_country = data[data['Country/Territory'] == country]
+        min_year, max_year = data_country['Year'].min(), data_country['Year'].max()
+        fig1 = px.bar(data_country.iloc[:,2:].sum().sort_values(ascending=False).head(10), title='Top 10 Causas de mortes: {} entre {} e {}'.format(country, min_year, max_year), color_discrete_sequence=px.colors.qualitative.Pastel, labels={'value': 'Mortes', 'index': 'Causas de mortes'})
+        fig1.update_layout(showlegend=False)
+        fig1.show()
+
+        graph1JSON = json.dumps(fig1, cls=plotly.utils.PlotlyJSONEncoder) #codificação em json para conversar com o html
+
+        cause_of_deaths = ['Meningitis',
+       'Alzheimer\'s Disease and Other Dementias', 'Parkinson\'s Disease',
+       'Nutritional Deficiencies', 'Malaria', 'Drowning',
+       'Interpersonal Violence', 'Maternal Disorders', 'HIV/AIDS',
+       'Drug Use Disorders', 'Tuberculosis', 'Cardiovascular Diseases',
+       'Lower Respiratory Infections', 'Neonatal Disorders',
+       'Alcohol Use Disorders', 'Self-harm', 'Exposure to Forces of Nature',
+       'Diarrheal Diseases', 'Environmental Heat and Cold Exposure',
+       'Neoplasms', 'Conflict and Terrorism', 'Diabetes Mellitus',
+       'Chronic Kidney Disease', 'Poisonings', 'Protein-Energy Malnutrition',
+       'Road Injuries', 'Chronic Respiratory Diseases',
+       'Cirrhosis and Other Chronic Liver Diseases', 'Digestive Diseases',
+       'Fire, Heat, and Hot Substances', 'Acute Hepatitis']
+
+        data['Total_no_of_Deaths'] = data[cause_of_deaths].sum(axis=1)
+
+        Total_no_of_Deaths_data = data[data['Country/Territory']==country].sort_values(by='Total_no_of_Deaths',ascending=False)
+
+        plt.figure(figsize=(8,4),dpi=200)
+
+        #grafico 2 - total de mortes entre os anos 1990 - 2019
+        fig2 = px.scatter(Total_no_of_Deaths_data, x='Year', y='Total_no_of_Deaths', title='Número total de mortes entre 1990 e 2019: {}'.format(country),color='Interpersonal Violence', labels={'value': 'Total de mortes', 'index': 'Ano'})
+        fig2.show()
+
+        graph2JSON = json.dumps(fig2, cls=plotly.utils.PlotlyJSONEncoder)
+        #graph2JSON = fig2.to_json()
+
+        return render_template('plots.html', user = current_user, graph1JSON = graph1JSON, graph2JSON = graph2JSON)
+        
     return render_template('arquivos.html', user=current_user, arquivos = lista_arquivos)
-
-    #adicionar ou remover anotações
-    if request.method == 'POST':
-        note = request.form.get('note')
-        if len(note) < 1:
-            flash('Anotação invalida.', category = 'error')
-        else:
-            new_note = Note(data=note, user_id=current_user.id)
-            db.session.add(new_note)
-            db.session.commit()
-            flash('Anotação adicionada', category = 'success')
-
-    return render_template("index.html", user = current_user)
-
-
-#@views.route('arquivos/plot', methods=['POST','GET'])
-#@login_required
-#def plot():
-
 
 @views.route('/dash', methods = ['GET','POST'])
 def dash(): #escolher uma coluna do csv upado e plotar grafico
     if request.method == 'POST':
         variable = request.form['variable']
-        data = pd.read_csv('static/exemplo.csv')
-        plt.bar(range(len(data[variable])), data[variable])
+        data = pd.read_csv('static/{}/cause_of_deaths.csv'.format(current_user.primeiro_nome))
+        plt.scatter(range(len(data[variable])), data[variable])
         imagepath = os.path.join('static', 'image' + '.png')
         plt.savefig(imagepath)
         return render_template('image.html', image = imagepath)
