@@ -4,15 +4,18 @@ from flask_login import login_required, current_user
 from models import Note
 from __main__ import db
 import json
+
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+
 
 views = Blueprint(__name__,"views")
 
 @views.route("/", methods=['GET','POST'])
 @login_required
 def home():
+
     #adicionar nova anotação à pagina inicial do usuario
     if request.method == 'POST':
         note = request.form.get('note')
@@ -57,6 +60,20 @@ def arquivos(): #ler arquivo csv e realizar os plots
         return render_template('plots.html', user = current_user, data=data.to_html())
     return render_template('arquivos.html', user=current_user, arquivos = lista_arquivos)
 
+    #adicionar ou remover anotações
+    if request.method == 'POST':
+        note = request.form.get('note')
+        if len(note) < 1:
+            flash('Anotação invalida.', category = 'error')
+        else:
+            new_note = Note(data=note, user_id=current_user.id)
+            db.session.add(new_note)
+            db.session.commit()
+            flash('Anotação adicionada', category = 'success')
+
+    return render_template("index.html", user = current_user)
+
+
 #@views.route('arquivos/plot', methods=['POST','GET'])
 #@login_required
 #def plot():
@@ -82,7 +99,7 @@ def go_to_home():
 @views.route("/sign-up")
 def to_sign_up():
     return render_template('sign_up.html')
-
+    
 #deleta anotação
 @views.route('/delete-note', methods=['POST'])
 def delete_note():
@@ -94,5 +111,4 @@ def delete_note():
             db.session.delete(note)
             db.session.commit()
             flash('Anotação removida: {}'.format(note.data), category='success')
-
     return jsonify({})
