@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import plotly
 import plotly.express as px
 
+
 views = Blueprint(__name__,"views")
 
 @views.route("/", methods=['GET','POST'])
@@ -60,7 +61,6 @@ def arquivos(): #ler arquivo csv e escolher entre os arquivos upados para plotag
         year = '2019'
 
         #grafico 1 - top 10 causas de mortes 
-
         data_country = data[data['Country/Territory'] == country]
         min_year, max_year = data_country['Year'].min(), data_country['Year'].max()
         fig1 = px.bar(data_country.iloc[:,2:].sum().sort_values(ascending=False).head(10), title='Top 10 Causas de mortes: {} entre {} e {}'.format(country, min_year, max_year), color_discrete_sequence=px.colors.qualitative.Pastel, labels={'value': 'Mortes', 'index': 'Causas de mortes'})
