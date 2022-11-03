@@ -16,5 +16,5 @@ class User(db.Model, UserMixin):
     senha = db.Column(db.String(150))
     primeiro_nome = db.Column(db.String(150))
     #relacao de parentesco
-    notes = db.relationship('Note')
 
+    notes = db.relationship('Note')
